@@ -16,6 +16,7 @@ export default async (req) => {
   const key = process.env.GEMINI_API_KEY ?? process.env.gemini_key;
   if (!key) return json({ ok: false, reason: 'no_key' });
   const system = 'You are an airline recovery dispatcher. Choose exactly ONE candidate id from the list and explain why in at most 3 sentences. Use ONLY numbers that appear in the input, copied exactly. Do not invent actions or numbers. Reply as JSON: {"recommendedId":"<id>","explanation":"<text>"}.';
+  let detail = '';
   for (const model of MODELS) {
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
@@ -27,7 +28,7 @@ export default async (req) => {
           generationConfig: { temperature: 0, responseMimeType: 'application/json' },
         }),
       });
-      if (!res.ok) continue;
+      if (!res.ok) { detail = `${model} HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`; console.error(detail); continue; }
       const data = await res.json();
       const raw = (data.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? '').join('');
       const out = JSON.parse(raw || '{}');
@@ -36,9 +37,10 @@ export default async (req) => {
       const verified = valid && text.length > 0 && numbersIn(text).every((n) => allowed.has(n));
       if (!verified) return json({ ok: false, reason: 'number_mismatch' });
       return json({ ok: true, recommendedId: out.recommendedId, explanation: text });
-    } catch {
+    } catch (e) {
+      detail = `${model} error: ${String(e).slice(0, 200)}`; console.error(detail);
       continue;
     }
   }
-  return json({ ok: false, reason: 'api_error' });
+  return json({ ok: false, reason: 'api_error', detail });
 };
