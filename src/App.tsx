@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Activity, ArrowDownUp, ArrowRight, Plane, RotateCcw, ShieldAlert, Sparkles, Timer, Users, Wind } from 'lucide-react';
 import rawNetwork from './data/flight_network.json';
+import { AiDispatcher } from './AiDispatcher';
 import { simulate, recoveryOptions, type SimulationOverrides } from './engine/simulate';
 import { displayMinutes, fromMinutes, toMinutes } from './engine/time';
 import type { FlightNetwork, FlightResult, RecoveryCandidate, SimulationResult } from './types';
@@ -59,7 +60,7 @@ export default function App() {
       <section className="recovery-section"><div className="recovery-intro"><div><div className="eyebrow">04 / DISRUPTION MITIGATION</div><h2>Find a way back.</h2><p>Test cancellations and available spare aircraft against the current network state.</p></div><button className="recovery-button" disabled={!result} onClick={()=>setRecoveries(recoveryOptions(network,disruption,result!))}><Sparkles size={16}/> Recommend recovery</button></div>
         {recoveries&&<div className="recovery-grid">{recoveries.map((candidate,i)=><RecoveryCard key={candidate.action.id} candidate={candidate} rank={i+1} onApply={()=>{const overrides=candidate.action.type==='cancel'?{cancelledFlightIds:[candidate.action.flightId]}:{swaps:{[candidate.action.flightId]:candidate.action.spareTail!}};run(disruption,overrides);setApplied(candidate.action.id);}}/> )}{recoveries.length===0&&<div className="empty-state">No recovery candidates are available from the supplied spare-aircraft data.</div>}</div>}
       </section>
-      <section className="gemini-note"><div className="gemini-icon"><Sparkles size={17}/></div><div><strong>OPTIONAL / GEMINI EXPLANATION HOOK</strong><p>Deterministic recovery explanations run locally. A future server endpoint can add Gemini-generated narrative without exposing an API key in the browser. No AI service is required for this app.</p></div><span className="hook-status">NOT CONNECTED</span></section>
+      <AiDispatcher result={result} recoveries={recoveries}/>
     </>}
     <footer><span>DOMINO SKY <b>·</b> LOCAL-FIRST OPERATIONS LAB</span><span>DETERMINISTIC ENGINE <b>·</b> NO EXTERNAL API</span></footer>
   </main>;
