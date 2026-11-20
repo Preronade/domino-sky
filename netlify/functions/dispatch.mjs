@@ -13,7 +13,7 @@ export default async (req) => {
   if (!baseline || !Array.isArray(candidates) || candidates.length === 0 || candidates.length > 10)
     return json({ error: 'Invalid input' }, 400);
   const allowed = new Set(numbersIn(JSON.stringify(input)));
-  const key = process.env.GEMINI_API_KEY ?? process.env.gemini_key;
+  const key = (process.env.GEMINI_API_KEY ?? process.env.gemini_key ?? '').trim().replace(/^["']|["']$/g, '');
   if (!key) return json({ ok: false, reason: 'no_key' });
   const system = 'You are an airline recovery dispatcher. Choose exactly ONE candidate id from the list and explain why in at most 3 sentences. Use ONLY numbers that appear in the input, copied exactly. Do not invent actions or numbers. Reply as JSON: {"recommendedId":"<id>","explanation":"<text>"}.';
   let detail = '';
