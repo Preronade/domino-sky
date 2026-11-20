@@ -1,0 +1,13 @@
+export type Airport = { id: string; city: string; lat: number; lng: number };
+export type Flight = { flight_id: string; tail_id: string; leg_order: number; origin: string; destination: string; dep: string; arr: string; block_minutes: number; pax: number; turnaround_before_min: number };
+export type Connection = { from_flight: string; to_flight: string; passengers: number; min_connect_minutes: number };
+export type Crew = { tail_id: string; duty_start: string; max_duty_mins: number; flight_ids: string[] };
+export type SpareAircraft = { tail_id: string; base: string; available_from: string };
+export type FlightNetwork = { airports: Airport[]; flights: Flight[]; connections: Connection[]; crews: Crew[]; spare_aircraft: SpareAircraft[] };
+export type CauseStep = { text: string };
+export type FlightResult = Flight & { schedDep: number; schedArr: number; actualDep: number; actualArr: number; newDep: string; delayMin: number; status: 'on-time'|'delayed'|'cancelled'; causeChain: string[]; cause: string };
+export type SimulationMetrics = { delayedFlights: number; totalDelayMinutes: number; strandedPassengers: number; crewViolations: number };
+export type SimulationResult = { flights: FlightResult[]; metrics: SimulationMetrics; missedConnections: { connection: Connection; shortfall: number }[]; crewViolations: string[] };
+export type Disruption = { airportId: string; start: number; duration: number };
+export type RecoveryAction = { id: string; type: 'cancel'|'swap'; flightId: string; spareTail?: string; label: string };
+export type RecoveryCandidate = { action: RecoveryAction; result: SimulationResult; passengersSaved: number; delayMinutesSaved: number; explanation: string };
